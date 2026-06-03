@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Million Little Things</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #aeddf2; }
+        canvas { display: block; }
+        
+        /* ==========================================
+           CINEMATIC START SCREEN (MINIMALIS & SEEN)
+           ========================================== */
+        #login-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffeef2 0%, #e1f5fe 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1.2s ease-in-out, visibility 1.2s;
+        }
+
+        .start-card {
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            padding: 20px;
+        }
+
+        .start-title {
+            font-size: 40px;
+            font-weight: 800;
+            color: #d1527a;
+            margin: 0 0 35px 0;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 10px rgba(209, 82, 122, 0.15);
+            animation: floatTitle 3s ease-in-out infinite alternate;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+            color: white;
+            border: none;
+            padding: 16px 45px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(255, 117, 140, 0.4);
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            outline: none;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(255, 117, 140, 0.65);
+        }
+
+        @keyframes floatTitle {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-10px); }
+        }
+
+        /* ==========================================
+           TRANSITION OVERLAY
+           ========================================== */
+        #fade-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 90;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        /* ==========================================
+           GAME UI OVERLAYS & COUNTERS
+           ========================================== */
+        #ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+            max-width: 300px;
+            transition: opacity 1s ease, visibility 1s ease;
+            opacity: 1;
+        }
+
+        /* INDIKATOR SKOR MISI REAL-TIME */
+        #mission-counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 14px;
+            border: 2px solid #ff9ebb;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: none;
+            pointer-events: none;
+            z-index: 95;
+        }
+
+        /* KOTAK DIALOG */
+        #dialog-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translate(-50%, 150px); 
+            opacity: 0;
+            
+            width: 90%;
+            max-width: 680px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 3px solid #ff9ebb;
+            border-radius: 16px;
+            padding: 12px 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+            pointer-events: none;
+            box-sizing: border-box;
+            
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            transition: transform 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.15), opacity 0.35s ease;
+            z-index: 95;
+        }
+
+        #dialog-box.active {
+            transform: translate(-50%, 0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #dialog-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 12px;
+            background-color: #fff2f5;
+            border: 3px solid #ff9ebb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(255, 158, 187, 0.2);
+            position: relative;
+        }
+
+        .avatar-head {
+            font-size: 58px;
+            line-height: 1;
+            transform: translateY(6px) scale(1.1);
+        }
+
+        #dialog-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-right: 60px;
+        }
+
+        #dialog-speaker {
+            font-weight: bold;
+            color: #e65c8a;
+            font-size: 15px;
+            margin-bottom: 3px;
+        }
+
+        #dialog-text {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        #dialog-skip-btn {
+            position: absolute;
+            bottom: 12px;
+            right: 18px;
+            background-color: #ffe6eb;
+            color: #d1527a;
+            border: 1px solid #ffccd5;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #dialog-skip-btn:hover {
+            background-color: #ff758c;
+            color: white;
+            border-color: #ff758c;
+        }
+
+        .interaction-buttons {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .interact-btn {
+            background-color: #ff9ebb;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .interact-btn:hover {
+            background-color: #e65c8a;
+        }
+
+        /* ==========================================
+           ENDING SCREEN MODAL DENGAN TIMEOUT LOCK
+           ========================================== */
+        #ending-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #ffeef2 0%, #d4f3fc 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 110;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        #ending-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .ending-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 4px solid #ff9ebb;
+            padding: 35px;
+            border-radius: 24px;
+            box-shadow: 0 15px 40px rgba(230, 92, 138, 0.3);
+            text-align: center;
+            max-width: 550px;
+            width: 85%;
+        }
+
+        .ending-card h2 {
+            color: #d1527a;
+            font-size: 26px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .ending-card p {
+            color: #444;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .ending-gift-box {
+            font-size: 55px;
+            margin-bottom: 20px;
+            animation: bounceGift 1.2s infinite alternate;
+        }
+
+        @keyframes bounceGift {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-15px) scale(1.05); }
+        }
+
+        .ending-btn {
+            background: linear-gradient(135deg, #4da6ff 0%, #1e88e5 100%);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(30, 136, 229, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .ending-btn:disabled {
+            background: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .ending-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 136, 229, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LAYAR PEMBUKA -->
+    <div id="login-screen">
+        <div class="start-card">
+            <h1 class="start-title">A Million Little Things</h1>
+            <button class="start-btn" onclick="startGame()">Mulai Petualangan ➔</button>
+        </div>
+    </div>
+
+    <!-- TRANSITION BLACK SCREEN OVERLAY -->
+    <div id="fade-overlay"></div>
+
+    <!-- ENDING MODAL -->
+    <div id="ending-modal">
+        <div class="ending-card">
+            <div class="ending-gift-box">🎁✨</div>
+            <h2>Misi Terakhir Terbuka! ❤️</h2>
+            <p>
+                <strong>Selamat ulang tahun yang ke-22, Jipi sayang!</strong> 🎉<br>
+                Terima kasih banyak sudah menyelesaikan dan menjelajahi semua portal memori di game <strong>"A Million Little Things"</strong> ini sampai akhir. Aku harap kado digital sederhana ini bisa bikin kamu tersenyum bahagia hari ini.<br><br>
+                Sekarang, ada satu misi terakhir yang wajib kamu lakukan di dunia nyata...
+            </p>
+            <p style="background-color: #ffeef2; padding: 12px; border-radius: 12px; border: 1px dashed #ff9ebb; font-weight: bold; font-size: 15px; color: #d1527a; margin-bottom: 25px;">
+                Misi Terakhir: Temui Aping sekarang juga untuk mengklaim hadiah misteri ulang tahunmu secara langsung! 💝
+            </p>
+            <button id="submit-ending-btn" class="ending-btn" disabled onclick="closeEnding()">Selesaikan Petualangan (20s...)</button>
+        </div>
+    </div>
+
+    <!-- GAMEPLAY HUD -->
+    <div id="ui-container">
+        <!-- Indikator Skor Real-Time Misi 2 & 3 -->
+        <div id="mission-counter">🍓 Strawberi: 0 / 10</div>
+
+        <div id="instructions">
+            <strong>Cara Bermain:</strong><br>
+            Gunakan tombol <b>W, A, S, D</b> atau <b>Tombol Panah</b> untuk menjalankan Jipi.<br>
+            Gunakan tombol <b>SPACEBAR</b> untuk melompat!<br>
+            Dekati Aping di tengah, dekati kucing, atau dekati portal cahaya!
+        </div>
+
+        <div id="dialog-box">
+            <div id="dialog-avatar">
+                <span id="avatar-element" class="avatar-head">💬</span>
+            </div>
+            
+            <div id="dialog-content">
+                <div id="dialog-speaker">Nama Pembicara</div>
+                <div id="dialog-text">Isi percakapan...</div>
+                <div id="dialog-options" class="interaction-buttons"></div>
+            </div>
+            
+            <button id="dialog-skip-btn" onclick="onSkipClicked()">Skip ➔</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // =========================================================================
+        // 1. STATUS PROGRESS GAME & PROGRESS PORTAL
+        // =========================================================================
+        let gameStarted = false;
+        let introActive = false;
+        let introState = "waiting"; 
+        let introIndex = 0;
+        let dialogIsProximity = false; // Penanda apakah dialog dibuka karena mendekati objek (agar tidak asal ter-auto-close)
+        
+        let activeWorld = "hub"; // "hub", "game1", "game2", "game3"
+        let portal2Unlocked = false; 
+        let portal3Unlocked = false; 
+        
+        let mission1Completed = false;
+        let mission2Completed = false;
+
+        let game1FlowersCollected = 0;
+        const game1FlowersList = [];
+        const game1UlatList = [];
+        const targetFlowersToCollect = 5;
+
+        let game2StrawberriesCaught = 0;
+        let game2State = "collecting"; // "collecting" -> "decorate" -> "cinematic_zoomin" -> "cinematic_eating"
+        const targetStrawberriesToCatch = 10;
+        const game2StrawberriesList = [];
+        const game2CakeStrawberries = []; 
+        const basecampFriends = [];
+
+        let game3Score = 0;
+        const targetNotesToHit = 10;
+        const game3NotesList = [];
+        let noteSpawnTimer = 0;
+
+        // Fisika Lompat untuk Jipi
+        let jipiJumpYVelocity = 0;
+        const gravityPhysics = 0.012;
+
+        const cloudsList = [];
+        const catsList = [];
+        const portals = [];
+
+        // State Pelacak Trigger Interaksi
+        let dialogActive = false;
+        let activeInteractiveCat = null;
+        let hasTriggeredPacar = false;
+        const hasTriggeredCat = { milo: false, lulu: false };
+        const hasTriggeredPortal = { 1: false, 2: false, 3: false };
+
+        // Dialog Intro Scene (Pembaruan teks menyapa kucing)
+        const introDialogs = [
+            { speaker: "Jipi", text: "Aduh! Di mana ini? Kenapa aku tiba-tiba jatuh dari langit?! 🧕", avatar: "🧕" },
+            { speaker: "Aping", text: "Hai Jipi sayang! ❤️ Selamat datang di dunia mini **'A Million Little Things'**!", avatar: "👦" },
+            { speaker: "Aping", text: "Ini pulau memori buatan khusus untuk merayakan ulang tahunmu yang ke-22! 🎉 Aku menyimpan beberapa kenangan manis kita di sini.", avatar: "👦" },
+            { speaker: "Aping", text: "Tugasmu adalah menjelajahi ketiga portal di sekitarku, selesaikan misinya, lalu kumpulkan kado spesialmu! **Psst, kamu juga bisa lho mengelus dan mengajak mengobrol kucing-kucing lucu (Milo & Lulu) di pulau ini!** 🐱 Selamat bermain, sayang! 🥰", avatar: "👦" }
+        ];
+
+        // Input Keys State
+        const keys = {
+            w: false, a: false, s: false, d: false,
+            ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false
+        };
+
+        // =========================================================================
+        // 2. REFERENSI ELEMEN DOM
+        // =========================================================================
+        const dialogBox = document.getElementById('dialog-box');
+        const dialogAvatarElement = document.getElementById('avatar-element');
+        const dialogSpeaker = document.getElementById('dialog-speaker');
+        const dialogText = document.getElementById('dialog-text');
+        const dialogOptions = document.getElementById('dialog-options');
+        const dialogSkipBtn = document.getElementById('dialog-skip-btn');
+        const missionCounter = document.getElementById('mission-counter');
+
+        // =========================================================================
+        // 3. INISIALISASI SCENE & RENDERER THREE.JS
+        // =========================================================================
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xaeddf2);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 15, 20);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        // Group Utama untuk Masing-masing Dunia
+        const hubGroup = new THREE.Group();
+        const game1Group = new THREE.Group();
+        const game2Group = new THREE.Group();
+        const game3Group = new THREE.Group();
+
+        scene.add(hubGroup);
+        scene.add(game1Group);
+        scene.add(game2Group);
+        scene.add(game3Group);
+
+        // Hanya tampilkan hubGroup di awal
+        hubGroup.visible = true;
+        game1Group.visible = false;
+        game2Group.visible = false;
+        game3Group.visible = false;
+
+        // Pencahayaan
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 20, 15);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024;
+        dirLight.shadow.mapSize.height = 1024;
+        scene.add(dirLight);
+
+        // Objek Ritme Musik Misi 3 (Dekorasi)
+        let rhythmTargetRing;
+
+        // Model Aping Pendukung di Game 2
+        let game2Aping;
+
+        // =========================================================================
+        // 4. FUNGSI PEMBUAT OBJEK / PROSEDURAL
+        // =========================================================================
+        function createLimb(width, height, depth, colorHex) {
+            const limbGroup = new THREE.Group();
+            const limbMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.6 });
+            const limbMesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), limbMat);
+            limbMesh.position.y = -height / 2;
+            limbMesh.castShadow = true;
+            limbGroup.add(limbMesh);
+            return limbGroup;
+        }
+
+        function createChibiCharacter(isJipi) {
+            const char = new THREE.Group();
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbb5, roughness: 0.7 });
+            const shirtMat = new THREE.MeshStandardMaterial({ color: 0x41627a, roughness: 0.5 });
+            const blackMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.6, 0.35), shirtMat);
+            torso.position.y = 0.7;
+            torso.castShadow = true;
+            char.add(torso);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 20, 20), skinMat);
+            head.position.y = 1.35;
+            head.castShadow = true;
+            char.add(head);
+
+            const blushMat = new THREE.MeshBasicMaterial({ color: 0xffa3b1 });
+            const blushL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), blushMat);
+            blushL.scale.set(1, 1, 0.2);
+            blushL.position.set(0.18, 1.28, 0.3);
+            const blushR = blushL.clone();
+            blushR.position.x = -0.18;
+            char.add(blushL, blushR);
+
+            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), blackMat);
+            eyeL.position.set(0.12, 1.36, 0.31);
+            const eyeR = eyeL.clone();
+            eyeR.position.x = -0.12;
+            char.add(eyeL, eyeR);
+
+            if (isJipi) {
+                const hijabMat = new THREE.MeshStandardMaterial({ color: 0xa18ae6, roughness: 0.8 });
+                const hijabTop = new THREE.Mesh(new THREE.SphereGeometry(0.36, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.7), hijabMat);
+                hijabTop.position.y = 1.38;
+                char.add(hijabTop);
+
+                const hijabChest = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.42, 0.3, 16), hijabMat);
+                hijabChest.position.y = 1.05;
+                char.add(hijabChest);
+
+                const glasses = new THREE.Group();
+                const glassMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
+                const lRing = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.02, 8, 16), glassMat);
+                lRing.position.set(0.12, 1.36, 0.33);
+                const rRing = lRing.clone();
+                rRing.position.x = -0.12;
+                glasses.add(lRing, rRing);
+                char.add(glasses);
+            } else {
+                const hairMat = new THREE.MeshStandardMaterial({ color: 0x1c1c1c, roughness: 0.8 });
+                const hairTop = new THREE.Mesh(new THREE.SphereGeometry(0.36, 16, 16, 0, Math.PI*2, 0, Math.PI*0.65), hairMat);
+                hairTop.position.y = 1.38;
+                char.add(hairTop);
+
+                const commaPoni = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 8), hairMat);
+                commaPoni.position.set(0.12, 1.48, 0.3);
+                char.add(commaPoni);
+
+                const glasses = new THREE.Group();
+                const glassMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
+                const lRing = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.02, 8, 16), glassMat);
+                lRing.position.set(0.12, 1.36, 0.33);
+                const rRing = lRing.clone();
+                rRing.position.x = -0.12;
+                glasses.add(lRing, rRing);
+                char.add(glasses);
+            }
+
+            const skinHex = 0xffdbb5;
+            const shirtHex = 0x41627a;
+
+            const leftArm = createLimb(0.16, 0.42, 0.16, shirtHex);
+            leftArm.position.set(0.38, 0.95, 0);
+            
+            const rightArm = createLimb(0.16, 0.42, 0.16, shirtHex);
+            rightArm.position.set(-0.38, 0.95, 0);
+
+            const leftLeg = createLimb(0.18, 0.42, 0.18, skinHex);
+            leftLeg.position.set(0.16, 0.42, 0);
+
+            const rightLeg = createLimb(0.18, 0.42, 0.18, skinHex);
+            rightLeg.position.set(-0.16, 0.42, 0);
+
+            char.add(leftArm, rightArm, leftLeg, rightLeg);
+
+            return {
+                group: char,
+                leftArm: leftArm,
+                rightArm: rightArm,
+                leftLeg: leftLeg,
+                rightLeg: rightLeg
+            };
+        }
+
+        function createClassChair(x, z, targetAngle) {
+            const chair = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: 0x8d6e63 }); 
+            
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.4), mat);
+            seat.position.y = 0.35;
+            chair.add(seat);
+            
+            const back = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.05), mat);
+            back.position.set(0, 0.55, -0.18);
+            chair.add(back);
+
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35), legMat);
+            leg.position.set(0.18, 0.175, 0.18);
+            const leg2 = leg.clone(); leg2.position.x = -0.18;
+            const leg3 = leg.clone(); leg3.position.z = -0.18;
+            const leg4 = leg2.clone(); leg4.position.z = -0.18;
+            chair.add(leg, leg2, leg3, leg4);
+
+            chair.position.set(x, 0.08, z);
+            chair.rotation.y = targetAngle;
+            game2Group.add(chair);
+        }
+
+        function createFallingStrawberry(id) {
+            const straw = new THREE.Group();
+            const redMat = new THREE.MeshStandardMaterial({ color: 0xff2e52, roughness: 0.3 });
+            const greenMat = new THREE.MeshStandardMaterial({ color: 0x4caf50 });
+
+            const berry = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), redMat);
+            berry.scale.set(1, 1.4, 1);
+            straw.add(berry);
+
+            const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.1, 4), greenMat);
+            leaf.position.y = 0.24;
+            straw.add(leaf);
+
+            const rx = -5 + Math.random() * 10;
+            const rz = -3 + Math.random() * 6;
+            straw.position.set(rx, 10, rz);
+            game2Group.add(straw);
+
+            game2StrawberriesList.push({
+                group: straw,
+                id: id,
+                active: true,
+                speed: 0.06 + Math.random() * 0.05
+            });
+        }
+
+        function spawnStrawberryOnCake() {
+            const redMat = new THREE.MeshStandardMaterial({ color: 0xff2e52, roughness: 0.3 });
+            const greenMat = new THREE.MeshStandardMaterial({ color: 0x4caf50 });
+
+            for(let i=0; i<8; i++) {
+                const straw = new THREE.Group();
+                const berry = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), redMat);
+                berry.scale.set(1, 1.4, 1);
+                const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.03, 4), greenMat);
+                leaf.position.y = 0.07;
+                straw.add(berry, leaf);
+
+                const angle = (i / 8) * Math.PI * 2;
+                straw.position.set(Math.cos(angle) * 0.24, 1.26, Math.sin(angle) * 0.24);
+                game2Group.add(straw);
+                game2CakeStrawberries.push(straw);
+            }
+        }
+
+        // FUNGSI UNTUK MEMBUAT TEMAN MAGANG (23 ORANG) MAKAN BERSAMA DI KELAS 2
+        function spawnBasecampFriends() {
+            // Bersihkan jika sebelumnya ada sisa render
+            basecampFriends.forEach(f => game2Group.remove(f));
+            basecampFriends.length = 0;
+
+            const colors = [0xff8a80, 0xffd54f, 0x81c784, 0x4fc3f7, 0xba68c8, 0xffb74d, 0xa1887f, 0x90a4ae];
+            for (let i = 0; i < 8; i++) {
+                const friend = new THREE.Group();
+                const bodyMat = new THREE.MeshStandardMaterial({ color: colors[i % colors.length] });
+                const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbb5 });
+
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.5), bodyMat);
+                body.position.y = 0.25;
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), skinMat);
+                head.position.y = 0.6;
+                
+                friend.add(body, head);
+
+                // Posisi melingkar seolah sedang duduk/berdiri di samping meja
+                const angle = (i / 8) * Math.PI * 2 + Math.PI/6;
+                friend.position.set(Math.cos(angle) * 1.3, 0.08, Math.sin(angle) * 1.3);
+                friend.lookAt(0, 0.3, 0);
+
+                game2Group.add(friend);
+                basecampFriends.push(friend);
+            }
+        }
+
+        function createFloatingNote(id) {
+            const note = new THREE.Group();
+            const noteMat = new THREE.MeshStandardMaterial({ 
+                color: 0xffd700, 
+                emissive: 0xffaa00, 
+                emissiveIntensity: 0.6,
+                roughness: 0.2
+            });
+
+            const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 12), noteMat);
+            note.add(sphere);
+
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35), noteMat);
+            stem.position.set(0.12, 0.18, 0);
+            note.add(stem);
+
+            const flag = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.07, 0.02), noteMat);
+            flag.position.set(0.18, 0.35, 0);
+            note.add(flag);
+
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 3.5 + Math.random() * 5.5;
+            const ry = 0.8 + Math.random() * 1.5;
+            note.position.set(Math.cos(angle)*radius, ry, Math.sin(angle)*radius);
+            game3Group.add(note);
+
+            game3NotesList.push({
+                group: note,
+                id: id,
+                active: true,
+                randOffset: Math.random() * 10,
+                pos: new THREE.Vector3(note.position.x, note.position.y, note.position.z)
+            });
+        }
+
+        // =========================================================================
+        // 5. DEKLARASI FUNGSI PENDUKUNG (Islands, Cats, Clouds, Portals)
+        // =========================================================================
+        
+        // MENYEMPURNAKAN KUCING MENJADI MODEL BULAT LOW-POLY YANG SANGAT LUCU
+        function createCuteCat(x, z, colorHex, id, name) {
+            const catGroup = new THREE.Group();
+            
+            const bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.5 });
+            const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+            const pinkMat = new THREE.MeshStandardMaterial({ color: 0xffb74d, roughness: 0.5 }); 
+            const noseMat = new THREE.MeshStandardMaterial({ color: 0xff8a80 });
+            const eyeMat = new THREE.MeshStandardMaterial({ color: id === 'lulu' ? 0x29b6f6 : 0x333333 }); // Lulu bermata biru laut
+
+            // Body Bulat menggemaskan
+            const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), bodyMat);
+            body.scale.set(1.2, 1, 1);
+            body.position.y = 0.3;
+            body.castShadow = true;
+            catGroup.add(body);
+
+            // Dada Putih Halus
+            const chest = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), whiteMat);
+            chest.position.set(0.18, 0.28, 0);
+            catGroup.add(chest);
+
+            // Kepala Bulat
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), bodyMat);
+            head.position.set(0.26, 0.48, 0);
+            head.castShadow = true;
+            catGroup.add(head);
+
+            // Mata Bulat Besar Bersinar
+            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), eyeMat);
+            eyeL.position.set(0.42, 0.52, 0.08);
+            const eyeR = eyeL.clone();
+            eyeR.position.z = -0.08;
+            catGroup.add(eyeL, eyeR);
+
+            // Hidung Merah Muda Mini
+            const nose = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.03, 4), noseMat);
+            nose.rotation.x = Math.PI / 2;
+            nose.position.set(0.46, 0.46, 0);
+            catGroup.add(nose);
+
+            // Telinga Segitiga Lucu
+            const earL = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.16, 4), bodyMat);
+            earL.position.set(0.25, 0.66, 0.09);
+            earL.rotation.z = -0.1;
+            earL.rotation.x = 0.1;
+            const earR = earL.clone();
+            earR.position.z = -0.09;
+            earR.rotation.x = -0.1;
+            catGroup.add(earL, earR);
+
+            // Telinga Dalam Berwarna Pink
+            const innerEarL = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.11, 4), pinkMat);
+            innerEarL.position.set(0.26, 0.65, 0.08);
+            innerEarL.rotation.z = -0.1;
+            innerEarL.rotation.x = 0.1;
+            const innerEarR = innerEarL.clone();
+            innerEarR.position.z = -0.08;
+            innerEarR.rotation.x = -0.1;
+            catGroup.add(innerEarL, innerEarR);
+
+            // 4 Kaki Bulat Kecil
+            const pawGeo = new THREE.SphereGeometry(0.07, 8, 8);
+            const pawFL = new THREE.Mesh(pawGeo, bodyMat); pawFL.position.set(0.22, 0.07, 0.12);
+            const pawFR = new THREE.Mesh(pawGeo, bodyMat); pawFR.position.set(0.22, 0.07, -0.12);
+            const pawBL = new THREE.Mesh(pawGeo, bodyMat); pawBL.position.set(-0.22, 0.07, 0.12);
+            const pawBR = new THREE.Mesh(pawGeo, bodyMat); pawBR.position.set(-0.22, 0.07, -0.12);
+            catGroup.add(pawFL, pawFR, pawBL, pawBR);
+
+            // Ekor Bergoyang
+            const tailGroup = new THREE.Group();
+            tailGroup.position.set(-0.32, 0.35, 0);
+            const tailSegment = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 8), bodyMat);
+            tailSegment.position.y = 0.15;
+            tailGroup.add(tailSegment);
+            catGroup.add(tailGroup);
+
+            catGroup.position.set(x, 0.08, z);
+            hubGroup.add(catGroup);
+
+            catsList.push({
+                group: catGroup,
+                tail: tailGroup,
+                id: id,
+                name: name,
+                rand: Math.random() * 10,
+                jumpTimer: 0
+            });
+        }
+
+        function createPortal(id, name, x, z, colorHex) {
+            const portalGroup = new THREE.Group();
+            
+            const ringGeo = new THREE.TorusGeometry(0.8, 0.08, 8, 24);
+            const ringMat = new THREE.MeshStandardMaterial({ 
+                color: colorHex, 
+                emissive: colorHex, 
+                emissiveIntensity: 0.8,
+                roughness: 0.2 
+            });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.position.y = 1;
+            portalGroup.add(ring);
+            
+            const lightGeo = new THREE.CylinderGeometry(0.7, 0.7, 0.1, 16);
+            const lightMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.4 });
+            const lightBase = new THREE.Mesh(lightGeo, lightMat);
+            lightBase.position.y = 0.05;
+            portalGroup.add(lightBase);
+
+            portalGroup.position.set(x, 0, z);
+            hubGroup.add(portalGroup);
+
+            portals.push({
+                id: id,
+                name: name,
+                group: portalGroup,
+                pos: new THREE.Vector3(x, 0, z)
+            });
+        }
+
+        function createCloud(x, y, z) {
+            const cloudGroup = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, flatShading: true });
+            
+            const base = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.4, 0.8), mat);
+            cloudGroup.add(base);
+
+            const puff1 = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8), mat);
+            puff1.position.set(-0.4, 0.2, 0);
+            const puff2 = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8), mat);
+            puff2.position.set(0.1, 0.3, 0);
+            const puff3 = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), mat);
+            puff3.position.set(0.5, 0.15, 0);
+            cloudGroup.add(puff1, puff2, puff3);
+
+            cloudGroup.position.set(x, y, z);
+            scene.add(cloudGroup);
+
+            cloudsList.push({
+                group: cloudGroup,
+                speed: 0.01 + Math.random() * 0.012
+            });
+        }
+
+        // POHON DIUBAH MENJADI LEBIH BESAR
+        function createTree(group, x, z) {
+            const tree = new THREE.Group();
+            
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 2.0, 8), trunkMat);
+            trunk.position.y = 1.0;
+            trunk.castShadow = true;
+            tree.add(trunk);
+
+            const leavesMat = new THREE.MeshStandardMaterial({ color: 0x388e3c, roughness: 0.8 });
+            
+            const leaf1 = new THREE.Mesh(new THREE.SphereGeometry(1.0, 8, 8), leavesMat);
+            leaf1.position.set(0, 2.2, 0);
+            leaf1.castShadow = true;
+            
+            const leaf2 = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 8), leavesMat);
+            leaf2.position.set(0.5, 2.6, 0.2);
+            leaf2.castShadow = true;
+
+            const leaf3 = new THREE.Mesh(new THREE.SphereGeometry(0.75, 8, 8), leavesMat);
+            leaf3.position.set(-0.4, 2.5, -0.4);
+            leaf3.castShadow = true;
+
+            tree.add(leaf1, leaf2, leaf3);
+            tree.position.set(x, 0, z);
+            group.add(tree);
+        }
+
+        function createBush(group, x, z) {
+            const bush = new THREE.Group();
+            const bushMat = new THREE.MeshStandardMaterial({ color: 0x689f38, roughness: 0.8 });
+            
+            const sphere1 = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), bushMat);
+            sphere1.position.set(0, 0.2, 0);
+            sphere1.castShadow = true;
+
+            const sphere2 = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), bushMat);
+            sphere2.position.set(0.2, 0.15, 0.08);
+            sphere2.castShadow = true;
+
+            const sphere3 = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 8), bushMat);
+            sphere3.position.set(-0.2, 0.14, -0.08);
+            sphere3.castShadow = true;
+
+            bush.add(sphere1, sphere2, sphere3);
+            bush.position.set(x, 0, z);
+            group.add(bush);
+        }
+
+        // BUNGA-BUNGA DEKORATIF
+        function createDecorativeFlower(group, x, z, colorHex) {
+            const flower = new THREE.Group();
+            const stemMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32 });
+            const petalMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.5 });
+            const centerMat = new THREE.MeshStandardMaterial({ color: 0xffeb3b, roughness: 0.5 });
+
+            // Stem
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.2, 5), stemMat);
+            stem.position.y = 0.1;
+            flower.add(stem);
+
+            // Center
+            const center = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 6), centerMat);
+            center.position.y = 0.2;
+            flower.add(center);
+
+            // Petals
+            const petalGeo = new THREE.SphereGeometry(0.04, 5, 5);
+            petalGeo.scale(1.5, 0.6, 1);
+            for (let i = 0; i < 5; i++) {
+                const petal = new THREE.Mesh(petalGeo, petalMat);
+                const angle = (i / 5) * Math.PI * 2;
+                petal.position.set(Math.cos(angle) * 0.07, 0.2, Math.sin(angle) * 0.07);
+                petal.rotation.y = -angle;
+                flower.add(petal);
+            }
+
+            flower.position.set(x, 0.08, z);
+            group.add(flower);
+        }
+
+        function createGame1Flower(x, z) {
+            const flowerGroup = new THREE.Group();
+            const stemMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32 });
+            const petalMat = new THREE.MeshStandardMaterial({ color: 0xff1744, roughness: 0.3, emissive: 0x990011, emissiveIntensity: 0.3 });
+
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.5), stemMat);
+            stem.position.y = 0.25;
+            flowerGroup.add(stem);
+
+            const blossom = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), petalMat);
+            blossom.position.y = 0.5;
+            flowerGroup.add(blossom);
+
+            flowerGroup.position.set(x, 0, z);
+            game1Group.add(flowerGroup);
+
+            game1FlowersList.push({
+                group: flowerGroup,
+                pos: new THREE.Vector3(x, 0.08, z),
+                active: true
+            });
+        }
+
+        function createGame1Ulat(startX, startZ, endX, endZ, speed) {
+            const ulatGroup = new THREE.Group();
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8bc34a, roughness: 0.8 });
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
+            for (let i = 0; i < 4; i++) {
+                const segment = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), bodyMat);
+                segment.position.set(-i * 0.12, 0.08, 0);
+                ulatGroup.add(segment);
+            }
+
+            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.02, 4, 4), eyeMat);
+            eyeL.position.set(0.06, 0.14, 0.06);
+            const eyeR = eyeL.clone();
+            eyeR.position.z = -0.06;
+            ulatGroup.add(eyeL, eyeR);
+
+            ulatGroup.position.set(startX, 0, startZ);
+            game1Group.add(ulatGroup);
+
+            game1UlatList.push({
+                group: ulatGroup,
+                start: new THREE.Vector3(startX, 0.08, startZ),
+                end: new THREE.Vector3(endX, 0.08, endZ),
+                speed: speed,
+                dir: 1
+            });
+        }
+
+        function createGiantCat() {
+            const catGroup = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: 0xffa726, roughness: 0.6 });
+            
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 0.9), mat);
+            body.position.y = 0.45;
+            body.castShadow = true;
+            catGroup.add(body);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), mat);
+            head.position.set(0.6, 0.9, 0);
+            head.castShadow = true;
+            catGroup.add(head);
+
+            const earMat = new THREE.MeshStandardMaterial({ color: 0xffa726 });
+            const earL = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.3, 4), earMat);
+            earL.position.set(0.6, 1.4, 0.25);
+            const earR = earL.clone();
+            earR.position.z = -0.25;
+            catGroup.add(earL, earR);
+
+            catGroup.position.set(0, 0.08, 0);
+            game1Group.add(catGroup);
+        }
+
+        function initGame2Decorations() {
+            // Papan Tulis Kelas Basecamp di Dinding Belakang
+            const boardFrameMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
+            const boardMat = new THREE.MeshStandardMaterial({ color: 0x263238, roughness: 0.9 }); 
+
+            const frame = new THREE.Mesh(new THREE.BoxGeometry(6.2, 3.2, 0.15), boardFrameMat);
+            frame.position.set(0, 2.2, -6.8);
+            game2Group.add(frame);
+
+            const slate = new THREE.Mesh(new THREE.BoxGeometry(6, 3, 0.1), boardMat);
+            slate.position.set(0, 2.2, -6.75);
+            game2Group.add(slate);
+
+            // Representasi tulisan kapur putih
+            const chalkMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const writing1 = new THREE.Mesh(new THREE.BoxGeometry(2, 0.05, 0.02), chalkMat);
+            writing1.position.set(-1.5, 2.8, -6.68);
+            const writing2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 0.02), chalkMat);
+            writing2.position.set(1.5, 2.5, -6.68);
+            game2Group.add(writing1, writing2);
+
+            // Meja Putih di Tengah
+            const tableTopMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }); 
+            const tableLegMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.5 }); 
+
+            const tableTop = new THREE.Mesh(new THREE.BoxGeometry(2, 0.1, 2), tableTopMat);
+            tableTop.position.set(0, 0.8, 0);
+            tableTop.castShadow = true;
+            tableTop.receiveShadow = true;
+            game2Group.add(tableTop);
+
+            const legGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.8, 8);
+            const leg1 = new THREE.Mesh(legGeo, tableLegMat); leg1.position.set(0.9, 0.4, 0.9);
+            const leg2 = new THREE.Mesh(legGeo, tableLegMat); leg2.position.set(-0.9, 0.4, 0.9);
+            const leg3 = new THREE.Mesh(legGeo, tableLegMat); leg3.position.set(0.9, 0.4, -0.9);
+            const leg4 = new THREE.Mesh(legGeo, tableLegMat); leg4.position.set(-0.9, 0.4, -0.9);
+            game2Group.add(leg1, leg2, leg3, leg4);
+
+            // Kue Black Forest di Tengah Meja
+            const cakeGroup = new THREE.Group();
+            const cakeBaseMat = new THREE.MeshStandardMaterial({ color: 0x3d2314, roughness: 0.6 }); 
+            const creamMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 }); 
+            const cherryMat = new THREE.MeshStandardMaterial({ color: 0xd50000, roughness: 0.2 }); 
+
+            const cakeLayer1 = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.15, 24), cakeBaseMat);
+            cakeLayer1.position.y = 0.85 + 0.075;
+            cakeGroup.add(cakeLayer1);
+
+            const cakeCream = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.05, 24), creamMat);
+            cakeCream.position.y = 0.85 + 0.15 + 0.025;
+            cakeGroup.add(cakeCream);
+
+            const cakeLayer2 = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.15, 24), cakeBaseMat);
+            cakeLayer2.position.y = 0.85 + 0.2 + 0.075;
+            cakeGroup.add(cakeLayer2);
+
+            const topFrosting = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.04, 24), creamMat);
+            topFrosting.position.y = 0.85 + 0.35 + 0.02;
+            cakeGroup.add(topFrosting);
+
+            // Tambahkan ceri di atas kue
+            for (let i = 0; i < 6; i++) {
+                const cherry = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 8), cherryMat);
+                const angle = (i / 6) * Math.PI * 2;
+                cherry.position.set(Math.cos(angle) * 0.32, 1.25, Math.sin(angle) * 0.32);
+                cakeGroup.add(cherry);
+            }
+
+            cakeGroup.position.set(0, 0, 0); 
+            game2Group.add(cakeGroup);
+
+            // Susun Kursi Kelas di Sebelah Kiri dan Kanan Ruangan
+            // Baris Kiri
+            createClassChair(-3.5, -4, Math.PI / 2);
+            createClassChair(-3.5, -2, Math.PI / 2);
+            createClassChair(-3.5, 0, Math.PI / 2);
+            createClassChair(-3.5, 2, Math.PI / 2);
+            createClassChair(-3.5, 4, Math.PI / 2);
+
+            createClassChair(-4.8, -3, Math.PI / 2);
+            createClassChair(-4.8, -1, Math.PI / 2);
+            createClassChair(-4.8, 1, Math.PI / 2);
+            createClassChair(-4.8, 3, Math.PI / 2);
+
+            // Baris Kanan
+            createClassChair(3.5, -4, -Math.PI / 2);
+            createClassChair(3.5, -2, -Math.PI / 2);
+            createClassChair(3.5, 0, -Math.PI / 2);
+            createClassChair(3.5, 2, -Math.PI / 2);
+            createClassChair(3.5, 4, -Math.PI / 2);
+
+            createClassChair(4.8, -3, -Math.PI / 2);
+            createClassChair(4.8, -1, -Math.PI / 2);
+            createClassChair(4.8, 1, -Math.PI / 2);
+            createClassChair(4.8, 3, -Math.PI / 2);
+        }
+
+        // =========================================================================
+        // 6. KODE FUNGSI DIALOG, INTERAKSI, DAN PORTAL
+        // =========================================================================
+        function showDialog(speaker, text, optionsHtml = "", avatarEmoji = "💬", showSkip = true, isProximity = false) {
+            if(!dialogBox) return;
+            dialogSpeaker.innerText = speaker;
+            dialogText.innerHTML = text;
+            dialogOptions.innerHTML = optionsHtml;
+            dialogAvatarElement.innerText = avatarEmoji;
+            dialogIsProximity = isProximity; // Tandai apakah dipicu oleh kedekatan atau event sistem
+
+            if (showSkip) {
+                dialogSkipBtn.style.display = "block";
+            } else {
+                dialogSkipBtn.style.display = "none";
+            }
+
+            dialogBox.classList.add('active');
+            dialogActive = true;
+        }
+
+        // Melepas fokus dari tombol setelah diklik agar tombol WASD langsung merespons
+        function blurFocus() {
+            if (document.activeElement && document.activeElement.tagName === "BUTTON") {
+                document.activeElement.blur();
+            }
+            window.focus();
+        }
+
+        function hideDialog() {
+            if(!dialogBox) return;
+            dialogBox.classList.remove('active');
+            dialogActive = false;
+            activeInteractiveCat = null;
+            dialogIsProximity = false; // Reset status kedekatan dialog
+            dialogBox.onclick = null;
+            dialogBox.style.cursor = "default";
+            blurFocus();
+        }
+
+        function onSkipClicked() {
+            if (introActive && introState === "dialog") {
+                introIndex++;
+                if (introIndex < introDialogs.length) {
+                    const d = introDialogs[introIndex];
+                    showDialog(d.speaker, d.text, "", d.avatar);
+                } else {
+                    introActive = false;
+                    introState = "done";
+                    hideDialog();
+                }
+            } else {
+                hideDialog();
+            }
+            blurFocus();
+        }
+
+        function interactWithCat(catId, action) {
+            const catObj = catsList.find(c => c.id === catId);
+            if (!catObj) return;
+
+            catObj.jumpTimer = Math.PI * 2;
+
+            if (action === 'elus') {
+                showDialog(
+                    catObj.name,
+                    `*Meoww~* 🐾 Jipi mengelus punggung bulu halus ${catObj.id === 'milo' ? 'Milo' : 'Lulu'}. Kucing itu memejamkan mata cantiknya, mendengkur senang, lalu bersandar manja ke kaki Jipi!`,
+                    `<button class="interact-btn" onclick="hideDialog()">Tutup 💖</button>`,
+                    "🐱",
+                    true,
+                    false
+                );
+            } else if (action === 'ngobrol') {
+                let catSpeech = "";
+                let catIcon = catObj.id === 'milo' ? "🐱" : "🐈";
+                if (catObj.id === 'milo') {
+                    catSpeech = `"Meoww! Selamat Ulang Tahun Jipi! Semoga kamu selalu diselimuti bunga-bunga indah, sepiring Kwetiaw Goreng hangat, dan tentunya kebahagiaan tak berujung bersama pacarmu yang setia menemani di sana! Meow~"`;
+                } else {
+                    catSpeech = `"Meoww~ Aku dengar kamu takut ulat ya? Tenang saja, di pulau terapung ini tidak ada ulat! Dan eh, selamat atas medali Perunggu PIMNAS 38 Makassar untuk Tim Balakaraksa! Jipi hebat! *purr*"`;
+                }
+                showDialog(
+                    catObj.name,
+                    catSpeech,
+                    `<button class="interact-btn" onclick="hideDialog()">Sama-sama Kucing Lucu! 🥰</button>`,
+                    catIcon,
+                    true,
+                    false
+                );
+            }
+        }
+
+        function transitionToWorld(worldName, spawnX, spawnZ) {
+            const overlay = document.getElementById("fade-overlay");
+            overlay.style.opacity = 1; 
+
+            setTimeout(() => {
+                hubGroup.visible = false;
+                game1Group.visible = false;
+                game2Group.visible = false;
+                game3Group.visible = false;
+                
+                if(missionCounter) missionCounter.style.display = "none";
+
+                if (worldName === "game1") {
+                    game1Group.visible = true;
+                    activeWorld = "game1";
+                    game1FlowersCollected = 0;
+                    game1FlowersList.forEach(f => {
+                        f.active = true;
+                        f.group.visible = true;
+                    });
+                } else if (worldName === "game2") {
+                    game2Group.visible = true;
+                    activeWorld = "game2";
+                    game2StrawberriesCaught = 0;
+                    game2State = "collecting";
+                    
+                    game2CakeStrawberries.forEach(s => game2Group.remove(s));
+                    game2CakeStrawberries.length = 0;
+
+                    game2StrawberriesList.forEach(s => game2Group.remove(s.group));
+                    game2StrawberriesList.length = 0; 
+                    
+                    createFallingStrawberry(1);
+                    createFallingStrawberry(2);
+                    createFallingStrawberry(3);
+
+                    if(missionCounter) {
+                        missionCounter.innerText = "🍓 Strawberi: 0 / 10";
+                        missionCounter.style.display = "block";
+                    }
+                } else if (worldName === "game3") {
+                    game3Group.visible = true;
+                    activeWorld = "game3";
+                    game3Score = 0;
+                    game3NotesList.forEach(n => game3Group.remove(n.group));
+                    game3NotesList.length = 0;
+                    
+                    for(let i=1; i<=10; i++) {
+                        createFloatingNote(i);
+                    }
+
+                    if(missionCounter) {
+                        missionCounter.innerText = "🎵 Nada Terkumpul: 0 / 10";
+                        missionCounter.style.display = "block";
+                    }
+                } else if (worldName === "hub") {
+                    hubGroup.visible = true;
+                    activeWorld = "hub";
+                }
+
+                jipiChibi.group.position.set(spawnX, 0.08, spawnZ);
+                jipiChibi.group.rotation.y = Math.PI; 
+                jipiChibi.group.scale.set(1, 1, 1); 
+
+                overlay.style.opacity = 0;
+                
+                if (worldName === "game1") {
+                    showDialog(
+                        "Misi: Mahkota Hijau",
+                        "Kumpulkan **5 Bunga Mawar Merah** bercahaya yang tersebar di taman ini, lalu serahkan pada Kucing Penjaga Ginger di tengah pulau. **Hati-hati terhadap ulat bulu merayap yang menggelikan!**",
+                        "",
+                        "🟢",
+                        true,
+                        false
+                    );
+                } else if (worldName === "game2") {
+                    showDialog(
+                        "Misi: The Blue Blueprint",
+                        "Ini replika ruang basecamp tempat kita merayakan ultahmu bareng 25 orang dulu! Ayo **tangkap 10 buah strawberi** segar berjatuhan yang akan dipakai menghias Kue Black Forest di tengah meja!",
+                        "",
+                        "🔵",
+                        true,
+                        false
+                    );
+                } else if (worldName === "game3") {
+                    showDialog(
+                        "Misi: The Greatest Ensemble",
+                        "Ayo bantu aku mengumpulkan **10 Nada Melodi Emas 🎵** yang beterbangan bebas di udara agar kita bisa bersama-sama menyanyikan lagu selamat ulang tahun penutup parade musik!",
+                        "",
+                        "🟡",
+                        true,
+                        false
+                    );
+                }
+            }, 800); 
+        }
+
+        function triggerUlatHit() {
+            showDialog(
+                "Jipi",
+                "Aaaa!! Ada ulat bulu merayap!! Geli banget, aku takuuutt! 🐛😭",
+                `<button class="interact-btn" onclick="teleportBackToStart()">Kembali ke Awal ↩️</button>`,
+                "🧕",
+                false,
+                false
+            );
+        }
+
+        function teleportBackToStart() {
+            hideDialog();
+            jipiChibi.group.position.set(0, 0.08, 8);
+        }
+
+        function triggerMisi1Victory() {
+            const overlay = document.getElementById("fade-overlay");
+            overlay.style.opacity = 1;
+
+            setTimeout(() => {
+                hubGroup.visible = true;
+                game1Group.visible = false;
+                activeWorld = "hub";
+                mission1Completed = true; 
+                
+                jipiChibi.group.position.set(-7, 0.08, -1.5);
+                jipiChibi.group.rotation.y = 0;
+
+                portal2Unlocked = true;
+                overlay.style.opacity = 0;
+
+                showDialog(
+                    "Misi Selesai! 🎉",
+                    `<span style='color:#00aa55; font-weight:bold; font-size:16px;'>Selamat! Kamu berhasil melewati tantangan ulat!</span><br><br>
+                    *(Dan... Selamat atas Medali Perunggu PIMNAS 38 Unhas Makassar untuk Tim Balakaraksa! 🎉 Hebat banget sih pacar aku ini! Aku bangga banget sama kamu, Jipi sayang! ❤️)*<br><br>
+                    *Psst, game ini emang ga ada hubungannya sama PIMNAS, tapi aku cuma mau pamer kalau pacarku itu luar biasa keren! Hehe.*<br><br>
+                    **Portal Kedua ("The Blue Blueprint") kini telah terbuka!**`,
+                    `<button class="interact-btn" onclick="hideDialog()">Aping makasih banyak! 🥰❤️</button>`,
+                    "👦",
+                    false,
+                    false
+                );
+            }, 800);
+        }
+
+        // Penyelesaian Misi 2 (Menghapus model kawan-kawan basecamp & model duplikat Aping)
+        function triggerMisi2Victory() {
+            const overlay = document.getElementById("fade-overlay");
+            overlay.style.opacity = 1;
+
+            setTimeout(() => {
+                hubGroup.visible = true;
+                game2Group.visible = false;
+                activeWorld = "hub";
+                mission2Completed = true; 
+                game2State = "collecting"; // Reset state misi 2 agar tidak mengunci pergerakan Jipi di Hub
+
+                // Bersihkan model kawan-kawan dari memori
+                basecampFriends.forEach(f => game2Group.remove(f));
+                basecampFriends.length = 0;
+                game2Aping.visible = false;
+
+                jipiChibi.group.position.set(7, 0.08, -1.5);
+                jipiChibi.group.rotation.y = 0;
+
+                portal3Unlocked = true;
+                overlay.style.opacity = 0;
+
+                showDialog(
+                    "Kue Berhasil Dihias! 🍓🎂",
+                    `<span style='color:#0088ff; font-weight:bold; font-size:16px;'>Hore! Kue Black Forest sudah penuh strawberi merah segar!</span><br><br>
+                    Momen kita makan bareng 25 orang di ruangan biru basecamp batik itu takkan pernah aku lupakan. Semoga kue digital ini bisa sedikit membawamu kembali ke masa-masa seru itu ya!<br><br>
+                    **Portal Ketiga ("The Greatest Ensemble") kini telah terbuka!**`,
+                    `<button class="interact-btn" onclick="hideDialog()">Menuju Portal Terakhir! ➔</button>`,
+                    "👦",
+                    false,
+                    false
+                );
+            }, 800);
+        }
+
+        function triggerMisi3Victory() {
+            hideDialog(); // Menutup kotak dialog bawah agar bersih saat modal akhir muncul
+            playHappyBirthdayMelody();
+
+            if (missionCounter) missionCounter.style.display = "none";
+
+            setTimeout(() => {
+                const endingModal = document.getElementById("ending-modal");
+                const endingBtn = document.getElementById("submit-ending-btn");
+                endingModal.classList.add("active");
+
+                let timeLeft = 20;
+                const timerInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft > 0) {
+                        endingBtn.innerText = `Selesaikan Petualangan (${timeLeft}s...)`;
+                    } else {
+                        endingBtn.disabled = false;
+                        endingBtn.innerText = "Selesaikan Petualangan ➔";
+                        clearInterval(timerInterval);
+                    }
+                }, 1000);
+            }, 1000);
+        }
+
+        function closeEnding() {
+            document.getElementById("ending-modal").classList.remove("active");
+            transitionToWorld("hub", 0, 8);
+        }
+
+        function playHappyBirthdayMelody() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const notes = [
+                    {f: 261.63, d: 0.3}, {f: 261.63, d: 0.3}, {f: 293.66, d: 0.6}, {f: 261.63, d: 0.6}, {f: 349.23, d: 0.6}, {f: 329.63, d: 1.2},
+                    {f: 261.63, d: 0.3}, {f: 261.63, d: 0.3}, {f: 293.66, d: 0.6}, {f: 261.63, d: 0.6}, {f: 392.00, d: 0.6}, {f: 349.23, d: 1.2},
+                    {f: 261.63, d: 0.3}, {f: 261.63, d: 0.3}, {f: 523.25, d: 0.6}, {f: 440.00, d: 0.6}, {f: 349.23, d: 0.6}, {f: 329.63, d: 0.6}, {f: 293.66, d: 1.2},
+                    {f: 466.16, d: 0.3}, {f: 466.16, d: 0.3}, {f: 440.00, d: 0.6}, {f: 349.23, d: 0.6}, {f: 392.00, d: 0.6}, {f: 349.23, d: 1.5}
+                ];
+                let time = ctx.currentTime;
+                notes.forEach(note => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle'; 
+                    osc.frequency.setValueAtTime(note.f, time);
+                    gain.gain.setValueAtTime(0.15, time);
+                    gain.gain.exponentialRampToValueAtTime(0.01, time + note.d - 0.05);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(time);
+                    osc.stop(time + note.d);
+                    time += note.d * 1.15; 
+                });
+            } catch (e) {
+                console.log("Audio Context diblokir.");
+            }
+        }
+
+        // FUNGSI MEMULAI GAME DENGAN JATUH DARI LANGIT
+        function startGame() {
+            const loginScreen = document.getElementById("login-screen");
+            loginScreen.style.opacity = 0;
+            setTimeout(() => {
+                loginScreen.style.display = "none";
+                document.getElementById("ui-container").style.display = "block";
+                
+                jipiChibi.group.position.set(0, 25, 6); 
+                gameStarted = true;
+                introActive = true;
+                introState = "falling"; 
+                blurFocus();
+
+                // PANEL CARA BERMAIN MEMUDAR & HILANG OTOMATIS SETELAH 10 DETIK
+                setTimeout(() => {
+                    const instructions = document.getElementById("instructions");
+                    if (instructions) {
+                        instructions.style.opacity = 0;
+                        setTimeout(() => {
+                            instructions.style.visibility = "hidden";
+                        }, 1000);
+                    }
+                }, 10000);
+            }, 1000);
+        }
+
+        // =========================================================================
+        // 7. INISIALISASI GAMEWORLD & ASSET PROCEDURAL
+        // =========================================================================
+        
+        // Base hub island (Platform Hijau Utama)
+        const hubIsland = new THREE.Mesh(
+            new THREE.CylinderGeometry(15, 15, 0.4, 32),
+            new THREE.MeshStandardMaterial({ color: 0x8cd98c, roughness: 0.8 })
+        );
+        hubIsland.position.y = -0.2;
+        hubIsland.receiveShadow = true;
+        hubGroup.add(hubIsland);
+
+        // Base game 1 island (Platform Misi 1)
+        const game1Island = new THREE.Mesh(
+            new THREE.CylinderGeometry(10, 10, 0.4, 32),
+            new THREE.MeshStandardMaterial({ color: 0x9de09d, roughness: 0.8 })
+        );
+        game1Island.position.y = -0.2;
+        game1Island.receiveShadow = true;
+        game1Group.add(game1Island);
+
+        // Base game 2 island (Platform Kelas Biru Misi 2)
+        const game2Floor = new THREE.Mesh(
+            new THREE.BoxGeometry(14, 0.2, 14),
+            new THREE.MeshStandardMaterial({ color: 0xe0f7fa, roughness: 0.8 }) 
+        );
+        game2Floor.position.y = -0.1;
+        game2Floor.receiveShadow = true;
+        game2Group.add(game2Floor);
+
+        // Dinding Kelas Misi 2 (Biru Lembut)
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x81d4fa, roughness: 0.7 });
+        
+        // Dinding Belakang
+        const backWall = new THREE.Mesh(new THREE.BoxGeometry(14, 4, 0.3), wallMat);
+        backWall.position.set(0, 2, -7);
+        game2Group.add(backWall);
+
+        // Dinding Kiri
+        const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4, 14.3), wallMat);
+        leftWall.position.set(-7, 2, 0);
+        game2Group.add(leftWall);
+
+        // Dinding Kanan
+        const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4, 14.3), wallMat);
+        rightWall.position.set(7, 2, 0);
+        game2Group.add(rightWall);
+
+        // Base game 3 island (Platform Misi 3)
+        const game3Island = new THREE.Mesh(
+            new THREE.CylinderGeometry(10, 10, 0.4, 32),
+            new THREE.MeshStandardMaterial({ color: 0xffecb3, roughness: 0.8 })
+        );
+        game3Island.position.y = -0.2;
+        game3Island.receiveShadow = true;
+        game3Group.add(game3Island);
+
+        // Laut
+        const sea = new THREE.Mesh(
+            new THREE.PlaneGeometry(1000, 1000),
+            new THREE.MeshStandardMaterial({ color: 0x5cb3ff, roughness: 0.2 })
+        );
+        sea.rotation.x = -Math.PI / 2;
+        sea.position.y = -0.5;
+        scene.add(sea);
+
+        // Inisialisasi Kucing Bulat Imut di Hub Utama ( Milo & Lulu Sempurna )
+        createCuteCat(-4, 4, 0xe6903b, "milo", "Kucing Milo Oranye");
+        createCuteCat(5, -6, 0xffffff, "lulu", "Kucing Lulu Putih");
+
+        // Inisialisasi Portal di Hub Utama
+        createPortal(1, "Portal Hijau: Mahkota Hijau 🟢", -5, -3, 0x00ff66);
+        createPortal(2, "Portal Biru: The Blue Blueprint 🔵", 0, -5, 0x00aaff);
+        createPortal(3, "Portal Kuning: The Greatest Ensemble 🟡", 5, -3, 0xffcc00);
+
+        // Rimbun Pohon & Semak di Hub Utama (POHON LEBIH BESAR)
+        createTree(hubGroup, -12, -8);
+        createTree(hubGroup, 12, -8);
+        createTree(hubGroup, -13, 6);
+        createTree(hubGroup, 13, 6);
+        createTree(hubGroup, -8, 12);
+        createTree(hubGroup, 8, 12);
+
+        createBush(hubGroup, -8, -6);
+        createBush(hubGroup, 8, -6);
+        createBush(hubGroup, -10, 2);
+        createBush(hubGroup, 10, -2);
+
+        // Inisialisasi Bunga-Bunga Dekoratif di Hub Utama
+        createDecorativeFlower(hubGroup, -3, 2, 0xff80ab); // Pink
+        createDecorativeFlower(hubGroup, -2, 3, 0xffeb3b); // Kuning
+        createDecorativeFlower(hubGroup, 3, -2, 0xff9800); // Jingga
+        createDecorativeFlower(hubGroup, 4, -4, 0xd1c4e9); // Ungu
+        createDecorativeFlower(hubGroup, 1, 6, 0xff5252);  // Merah
+        createDecorativeFlower(hubGroup, -6, -2, 0xff80ab);
+        createDecorativeFlower(hubGroup, 6, 3, 0xffeb3b);
+
+        // Inisialisasi Awan
+        for(let i=0; i<8; i++) {
+            createCloud(-20 + Math.random()*40, 8 + Math.random()*5, -15 + Math.random()*30);
+        }
+
+        // Inisialisasi Aset Misi 1 (Mawar, Ulat, Pohon & Semak)
+        createGame1Flower(-4, -4);
+        createGame1Flower(4, -4);
+        createGame1Flower(-5, 3);
+        createGame1Flower(5, 4);
+        createGame1Flower(0, -6);
+
+        createGame1Ulat(-3, -2, 3, -2, 0.04);
+        createGame1Ulat(2, 3, -4, 3, 0.035);
+        createGame1Ulat(-2, -5, -2, 1, 0.03);
+
+        createGiantCat();
+
+        // Rimbun Pohon & Semak di Misi 1 (POHON LEBIH BESAR)
+        createTree(game1Group, -6, -6);
+        createTree(game1Group, 6, -6);
+        createTree(game1Group, -7, 5);
+        createTree(game1Group, 7, 6);
+        createTree(game1Group, 0, 7);
+
+        createBush(game1Group, -3, -5);
+        createBush(game1Group, 3, -5);
+        createBush(game1Group, -5, 2);
+        createBush(game1Group, 5, -2);
+        createBush(game1Group, -2, 6);
+        createBush(game1Group, 2, 6);
+
+        // Bunga Dekoratif di Misi 1
+        createDecorativeFlower(game1Group, -2, -3, 0xff80ab);
+        createDecorativeFlower(game1Group, 2, -3, 0xffeb3b);
+        createDecorativeFlower(game1Group, -4, 1, 0xd1c4e9);
+        createDecorativeFlower(game1Group, 4, 1, 0xff9800);
+        createDecorativeFlower(game1Group, 0, 4, 0xff5252);
+
+        // Inisialisasi Aset Misi 2 (Meja, Kursi, Kue Black Forest)
+        initGame2Decorations();
+
+        // Inisialisasi Target Ritme Misi 3 (Sebagai dekorasi cincin penanda di pulau)
+        const rhythmTargetRingMat = new THREE.MeshBasicMaterial({ color: 0xff1744, side: THREE.DoubleSide });
+        rhythmTargetRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.0, 32), rhythmTargetRingMat);
+        rhythmTargetRing.rotation.x = -Math.PI / 2;
+        rhythmTargetRing.position.set(0, 0.09, 0);
+        game3Group.add(rhythmTargetRing);
+
+        // Karakter Jipi Chibi Utama
+        const jipiChibi = createChibiCharacter(true);
+        jipiChibi.group.position.set(0, 0.08, 8);
+        scene.add(jipiChibi.group);
+
+        // Karakter Aping Chibi di Hub Utama
+        const pacarChibi = createChibiCharacter(false);
+        pacarChibi.group.position.set(0, 0.08, 0);
+        pacarChibi.group.rotation.y = Math.PI;
+        hubGroup.add(pacarChibi.group); 
+
+        // Model Aping Pendukung khusus di Basecamp Misi 2
+        const apingChibiGame2 = createChibiCharacter(false);
+        game2Aping = apingChibiGame2.group;
+        game2Aping.visible = false; 
+        game2Group.add(game2Aping);
+
+        // Input Keyboard Event Listeners
+        window.addEventListener('keydown', (e) => {
+            const k = e.key.toLowerCase();
+            if (k === 'w' || e.key === 'ArrowUp') keys.w = true;
+            if (k === 's' || e.key === 'ArrowDown') keys.s = true;
+            if (k === 'a' || e.key === 'ArrowLeft') keys.a = true;
+            if (k === 'd' || e.key === 'ArrowRight') keys.d = true;
+
+            if (e.code === 'Space') {
+                // Jipi melompat hanya jika sedang berada di tanah dan dialog tidak aktif
+                if (gameStarted && !dialogActive && !introActive && jipiChibi.group.position.y <= 0.085) {
+                    jipiJumpYVelocity = 0.22; 
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const k = e.key.toLowerCase();
+            if (k === 'w' || e.key === 'ArrowUp') keys.w = false;
+            if (k === 's' || e.key === 'ArrowDown') keys.s = false;
+            if (k === 'a' || e.key === 'ArrowLeft') keys.a = false;
+            if (k === 'd' || e.key === 'ArrowRight') keys.d = false;
+        });
+
+        // Pengaman input jika peramban kehilangan fokus
+        window.addEventListener('blur', () => {
+            keys.w = false;
+            keys.s = false;
+            keys.a = false;
+            keys.d = false;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // =========================================================================
+        // 8. GAME LOOP UTAMA
+        // =========================================================================
+        const speed = 0.085;
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+
+            // A. Gerakan Awan-Awan Terapung
+            cloudsList.forEach(cloud => {
+                cloud.group.position.x += cloud.speed;
+                if (cloud.group.position.x > 35) {
+                    cloud.group.position.x = -35;
+                }
+            });
+
+            // B. Goyangan Ekor Kucing Hub
+            catsList.forEach(cat => {
+                cat.tail.rotation.z = Math.sin(time * 3 + cat.rand) * 0.3 - 0.5;
+
+                if (cat.jumpTimer > 0) {
+                    cat.jumpTimer -= 0.15;
+                    cat.group.position.y = 0.08 + Math.abs(Math.sin(cat.jumpTimer)) * 0.8;
+                } else {
+                    // Update posisi vertical default jika sedang tidak melompat secara fisika
+                    if (jipiChibi.group.position.y <= 0.085 && jipiJumpYVelocity <= 0) {
+                        cat.group.position.y = 0.08;
+                    }
+                }
+            });
+
+            // C. CUTSCENE INTRO JATUH DI LANGIT
+            if (introActive && introState === "falling") {
+                jipiChibi.group.position.y -= 0.45;
+                if (jipiChibi.group.position.y <= 0.08) {
+                    jipiChibi.group.position.y = 0.08;
+                    jipiChibi.group.scale.set(1.4, 0.5, 1.4); 
+                    introState = "landed";
+                }
+            }
+
+            if (introActive && introState === "landed") {
+                jipiChibi.group.scale.x += (1 - jipiChibi.group.scale.x) * 0.12;
+                jipiChibi.group.scale.y += (1 - jipiChibi.group.scale.y) * 0.12;
+                jipiChibi.group.scale.z += (1 - jipiChibi.group.scale.z) * 0.12;
+
+                if (Math.abs(jipiChibi.group.scale.y - 1) < 0.05) {
+                    jipiChibi.group.scale.set(1, 1, 1);
+                    introState = "dialog";
+                    introIndex = 0;
+                    const d = introDialogs[introIndex];
+                    showDialog(d.speaker, d.text, "", d.avatar);
+                }
+            }
+
+            // D. Logika Berjalan Jipi (Dikunci selama transisi sinematik dekorasi kue di Misi 2)
+            const canMove = gameStarted && !dialogActive && !introActive && 
+                (activeWorld !== "game2" || (game2State !== "cinematic_zoomin" && game2State !== "cinematic_eating"));
+
+            if (canMove) {
+                let moveX = 0;
+                let moveZ = 0;
+
+                if (keys.w) moveZ -= 1;
+                if (keys.s) moveZ += 1;
+                if (keys.a) moveX -= 1;
+                if (keys.d) moveX += 1;
+
+                if (moveX !== 0 || moveZ !== 0) {
+                    const length = Math.sqrt(moveX * moveX + moveZ * moveZ);
+                    jipiChibi.group.position.x += (moveX / length) * speed;
+                    jipiChibi.group.position.z += (moveZ / length) * speed;
+
+                    const targetAngle = Math.atan2(moveX, moveZ);
+                    jipiChibi.group.rotation.y = targetAngle;
+
+                    const walkSpeed = 12;
+                    jipiChibi.leftLeg.rotation.x = Math.sin(time * walkSpeed) * 0.6;
+                    jipiChibi.rightLeg.rotation.x = -Math.sin(time * walkSpeed) * 0.6;
+                    jipiChibi.leftArm.rotation.x = -Math.sin(time * walkSpeed) * 0.5;
+                    jipiChibi.rightArm.rotation.x = Math.sin(time * walkSpeed) * 0.5;
+                    
+                    // Efek goyang berjalan hanya saat berada di tanah
+                    if (jipiChibi.group.position.y <= 0.085 && jipiJumpYVelocity <= 0) {
+                        jipiChibi.group.position.y = 0.08 + Math.abs(Math.sin(time * walkSpeed)) * 0.08;
+                    }
+                } else {
+                    jipiChibi.leftLeg.rotation.x = 0;
+                    jipiChibi.rightLeg.rotation.x = 0;
+                    jipiChibi.leftArm.rotation.x = 0;
+                    jipiChibi.rightArm.rotation.x = 0;
+                    
+                    if (jipiChibi.group.position.y <= 0.085 && jipiJumpYVelocity <= 0) {
+                        jipiChibi.group.position.y = 0.08;
+                    }
+                }
+            }
+
+            // Perhitungan Fisika Lompatan & Gravitasi Jipi
+            if (jipiJumpYVelocity !== 0 || jipiChibi.group.position.y > 0.08) {
+                jipiChibi.group.position.y += jipiJumpYVelocity;
+                jipiJumpYVelocity -= gravityPhysics; // Gravitasi menarik karakter ke bawah
+                
+                if (jipiChibi.group.position.y <= 0.08) {
+                    jipiChibi.group.position.y = 0.08;
+                    jipiJumpYVelocity = 0;
+                }
+            }
+
+            // Batas Area Pulau/Ruangan Berdasarkan World Aktif
+            const distanceFromCenter = Math.sqrt(jipiChibi.group.position.x * jipiChibi.group.position.x + jipiChibi.group.position.z * jipiChibi.group.position.z);
+            
+            if (activeWorld === "game2") {
+                if (jipiChibi.group.position.x > 6.3) jipiChibi.group.position.x = 6.3;
+                if (jipiChibi.group.position.x < -6.3) jipiChibi.group.position.x = -6.3;
+                if (jipiChibi.group.position.z > 6.3) jipiChibi.group.position.z = 6.3;
+                if (jipiChibi.group.position.z < -6.3) jipiChibi.group.position.z = -6.3;
+            } else {
+                let boundaryRadius = 14.5;
+                if (activeWorld === "game1") boundaryRadius = 9.5;
+                if (activeWorld === "game3") boundaryRadius = 9.5;
+
+                if (distanceFromCenter > boundaryRadius) {
+                    const angle = Math.atan2(jipiChibi.group.position.z, jipiChibi.group.position.x);
+                    jipiChibi.group.position.x = Math.cos(angle) * boundaryRadius;
+                    jipiChibi.group.position.z = Math.sin(angle) * boundaryRadius;
+                }
+            }
+
+            // E. Transisi Kamera (Mengikuti Player & Efek Sinematik Misi 2)
+            if (activeWorld === "game2" && (game2State === "cinematic_zoomin" || game2State === "cinematic_eating")) {
+                if (game2State === "cinematic_zoomin") {
+                    // Kamera Zoom-in dramatis ke Kue
+                    const targetCamX = 0;
+                    const targetCamY = 1.6;
+                    const targetCamZ = 1.3;
+                    camera.position.x += (targetCamX - camera.position.x) * 0.05;
+                    camera.position.y += (targetCamY - camera.position.y) * 0.05;
+                    camera.position.z += (targetCamZ - camera.position.z) * 0.05;
+                    camera.lookAt(0, 1.0, 0); 
+                } else if (game2State === "cinematic_eating") {
+                    // Kamera Zoom-out dramatis memperlihatkan seluruh ruang basecamp makan bersama
+                    const targetCamX = 0;
+                    const targetCamY = 4.5;
+                    const targetCamZ = 6.0;
+                    camera.position.x += (targetCamX - camera.position.x) * 0.04;
+                    camera.position.y += (targetCamY - camera.position.y) * 0.04;
+                    camera.position.z += (targetCamZ - camera.position.z) * 0.04;
+                    camera.lookAt(0, 0.9, 0); 
+                }
+            } else {
+                // Sudut pandang normal mengikuti Jipi
+                const targetCamX = jipiChibi.group.position.x;
+                const targetCamY = jipiChibi.group.position.y + 5.5;
+                const targetCamZ = jipiChibi.group.position.z + 8.5;
+                camera.position.x += (targetCamX - camera.position.x) * 0.05;
+                camera.position.y += (targetCamY - camera.position.y) * 0.05;
+                camera.position.z += (targetCamZ - camera.position.z) * 0.05;
+                camera.lookAt(jipiChibi.group.position.x, jipiChibi.group.position.y + 1, jipiChibi.group.position.z);
+            }
+
+            // ==========================================
+            // LOGIKA GAMEPLAY BERDASARKAN WORLD AKTIF
+            // ==========================================
+            if (gameStarted && !introActive) {
+
+                // F. LOGIKA HUB UTAMA
+                if (activeWorld === "hub") {
+                    const distToPacar = jipiChibi.group.position.distanceTo(pacarChibi.group.position);
+                    
+                    // Jarak Kucing Hub
+                    let nearCat = null;
+                    catsList.forEach(cat => {
+                        const distToCat = jipiChibi.group.position.distanceTo(cat.group.position);
+                        if (distToCat < 1.3) {
+                            nearCat = cat;
+                        } else {
+                            hasTriggeredCat[cat.id] = false;
+                        }
+                    });
+
+                    // Jarak Portal Hub
+                    let nearPortal = null;
+                    portals.forEach(p => {
+                        const distToPortal = jipiChibi.group.position.distanceTo(p.pos);
+                        if (distToPortal < 1.2) {
+                            nearPortal = p;
+                        } else {
+                            hasTriggeredPortal[p.id] = false;
+                        }
+                    });
+
+                    if (distToPacar >= 2.0) {
+                        hasTriggeredPacar = false;
+                    }
+
+                    if (nearCat) {
+                        if (!dialogActive && !hasTriggeredCat[nearCat.id]) {
+                            hasTriggeredCat[nearCat.id] = true;
+                            activeInteractiveCat = nearCat.id;
+                            const options = `
+                                <div class="interaction-buttons">
+                                    <button class="interact-btn" onclick="interactWithCat('${nearCat.id}', 'elus')">Elus Kucing 🐾</button>
+                                    <button class="interact-btn" onclick="interactWithCat('${nearCat.id}', 'ngobrol')">Ajak Ngobrol 🐱</button>
+                                </div>
+                            `;
+                            let catIcon = nearCat.id === 'milo' ? "🐱" : "🐈";
+                            showDialog(nearCat.name, `Ada ${nearCat.name} yang gembul di sini! Apa yang ingin kamu lakukan?`, options, catIcon, true, true);
+                        }
+                    } else if (distToPacar < 1.8) {
+                        if (!dialogActive && !hasTriggeredPacar) {
+                            hasTriggeredPacar = true;
+                            
+                            if (mission2Completed) {
+                                showDialog(
+                                    "Aping", 
+                                    "Hebat banget pacarku! Kuenya keliatan enak banget didekorasi strawberi segar. Yuk, masuk ke Portal Kuning terakhir (<i>'The Greatest Ensemble'</i>) untuk kado puncaknya! 💛✨",
+                                    "",
+                                    "👦",
+                                    true,
+                                    true
+                                );
+                            } else if (mission1Completed) {
+                                showDialog(
+                                    "Aping", 
+                                    "Wah, pacarku hebat banget! Kamu keren bisa lewatin ulat itu dan dapet medali perunggu PIMNAS. Sekarang lanjut ke Portal Biru (<i>'The Blue Blueprint'</i>) ya! 💙",
+                                    "",
+                                    "👦",
+                                    true,
+                                    true
+                                );
+                            } else {
+                                showDialog(
+                                    "Aping", 
+                                    "Gimana keliling pulaunya, Jipi sayang? ❤️ Cobalah mendekat ke lingkaran portal mawar bercahaya di kiri itu untuk memulai mini game pertama kita ya!",
+                                    "",
+                                    "👦",
+                                    true,
+                                    true
+                                );
+                            }
+                        }
+                    } else if (nearPortal) {
+                        if (!dialogActive && !hasTriggeredPortal[nearPortal.id]) {
+                            hasTriggeredPortal[nearPortal.id] = true;
+                            let linkMessage = "";
+                            let portalIcon = "🟢";
+                            
+                            if (nearPortal.id === 1) {
+                                linkMessage = "<br><br><span style='color:#00aa55; font-weight:bold;'>Klik kotak ini untuk Masuk</span>";
+                                portalIcon = "🟢";
+                            } else if (nearPortal.id === 2) {
+                                if (portal2Unlocked) {
+                                    linkMessage = "<br><br><span style='color:#0077cc; font-weight:bold;'>Klik kotak ini untuk Masuk</span>";
+                                } else {
+                                    linkMessage = "<br><br><span style='color:#e63946; font-weight:bold;'>Misi masih terkunci! Selesaikan Misi 1 terlebih dahulu.</span>";
+                                }
+                                portalIcon = "🔵";
+                            } else if (nearPortal.id === 3) {
+                                if (portal3Unlocked) {
+                                    linkMessage = "<br><br><span style='color:#ffbb00; font-weight:bold;'>Klik kotak ini untuk Masuk</span>";
+                                } else {
+                                    linkMessage = "<br><br><span style='color:#e63946; font-weight:bold;'>Misi masih terkunci! Selesaikan Misi 2 terlebih dahulu.</span>";
+                                }
+                                portalIcon = "🟡";
+                            }
+                            
+                            showDialog(nearPortal.name, `Apakah kamu ingin memasuki portal ini? ${linkMessage}`, "", portalIcon, true, true);
+                            
+                            if (nearPortal.id === 1) {
+                                dialogBox.style.cursor = "pointer";
+                                dialogBox.onclick = function() {
+                                    dialogBox.onclick = null;
+                                    dialogBox.style.cursor = "default";
+                                    hideDialog();
+                                    transitionToWorld("game1", 0, 8);
+                                };
+                            } else if (nearPortal.id === 2 && portal2Unlocked) {
+                                dialogBox.style.cursor = "pointer";
+                                dialogBox.onclick = function() {
+                                    dialogBox.onclick = null;
+                                    dialogBox.style.cursor = "default";
+                                    hideDialog();
+                                    transitionToWorld("game2", 0, 4);
+                                };
+                            } else if (nearPortal.id === 3 && portal3Unlocked) {
+                                dialogBox.style.cursor = "pointer";
+                                dialogBox.onclick = function() {
+                                    dialogBox.onclick = null;
+                                    dialogBox.style.cursor = "default";
+                                    hideDialog();
+                                    transitionToWorld("game3", 0, 8); 
+                                };
+                            }
+                        }
+                    } else {
+                        // Menutup dialog interaksi otomatis hanya jika dialog dipicu oleh kedekatan (proximity)
+                        if (distToPacar >= 2.2 && !nearPortal && dialogActive && activeInteractiveCat === null && dialogIsProximity) {
+                            hideDialog();
+                        }
+                    }
+                }
+
+                else if (activeWorld === "game1") {
+                    game1FlowersList.forEach(f => {
+                        if (f.active) {
+                            f.group.rotation.y += 0.03; 
+                            const distToFlower = jipiChibi.group.position.distanceTo(f.pos);
+                            if (distToFlower < 0.8) {
+                                f.active = false;
+                                f.group.visible = false; 
+                                game1FlowersCollected++;
+                                showDialog(
+                                    "Misi: Mahkota Hijau",
+                                    `Hore! Kamu mengumpulkan bunga mawar! 🌹 (${game1FlowersCollected}/${targetFlowersToCollect})`,
+                                    "",
+                                    "🟢",
+                                    true,
+                                    false
+                                );
+                            }
+                        }
+                    });
+
+                    game1UlatList.forEach(u => {
+                        const targetPos = u.dir === 1 ? u.end : u.start;
+                        const distToTarget = u.group.position.distanceTo(targetPos);
+
+                        if (distToTarget > 0.1) {
+                            const moveDir = new THREE.Vector3().subVectors(targetPos, u.group.position).normalize();
+                            u.group.position.addScaledVector(moveDir, u.speed);
+                            u.group.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                        } else {
+                            u.dir *= -1;
+                        }
+
+                        const distToJipi = jipiChibi.group.position.distanceTo(u.group.position);
+                        if (distToJipi < 0.75 && !dialogActive) {
+                            triggerUlatHit();
+                        }
+                    });
+
+                    const distToGiantCat = jipiChibi.group.position.distanceTo(new THREE.Vector3(0, 0.08, 0));
+                    if (distToGiantCat < 1.6 && !dialogActive) {
+                        if (game1FlowersCollected === targetFlowersToCollect) {
+                            showDialog(
+                                "Kucing Penjaga",
+                                `"Meowww... Mahkota bunga mawar terkumpul lengkap! Terima kasih Jipi yang manis, ini kunci portal keduamu. Mari kuteleportasikan kamu kembali ke Aping!"`,
+                                `<button class="interact-btn" onclick="triggerMisi1Victory()">Terima Kunci 🔑</button>`,
+                                "🐱",
+                                false,
+                                false
+                            );
+                        } else {
+                            showDialog(
+                                "Kucing Penjaga",
+                                `"Meoww~ Bunga mawar barumu terkumpul ${game1FlowersCollected}/${targetFlowersToCollect}. Aku belum bisa memberikan kunci jika mahkotanya belum lengkap!"`,
+                                "",
+                                "🐱",
+                                true,
+                                false
+                            );
+                        }
+                    }
+                }
+
+                else if (activeWorld === "game2") {
+                    if (game2State === "collecting") {
+                        game2StrawberriesList.forEach(s => {
+                            if (s.active) {
+                                s.group.rotation.y += 0.05;
+                                s.group.position.y -= s.speed; 
+
+                                if (s.group.position.y < 0.5) {
+                                    s.group.position.y = 10;
+                                    s.group.position.x = -5 + Math.random() * 10;
+                                    s.group.position.z = -3 + Math.random() * 6;
+                                }
+
+                                const distToJipi2D = Math.sqrt(Math.pow(jipiChibi.group.position.x - s.group.position.x, 2) + Math.pow(jipiChibi.group.position.z - s.group.position.z, 2));
+                                if (distToJipi2D < 1.0 && s.group.position.y < 1.8 && s.group.position.y > 0.0) {
+                                    s.active = false;
+                                    s.group.visible = false;
+                                    game2StrawberriesCaught++;
+
+                                    missionCounter.innerText = `🍓 Strawberi: ${game2StrawberriesCaught} / ${targetStrawberriesToCatch}`;
+
+                                    createFallingStrawberry(game2StrawberriesCaught + 3);
+                                }
+                            }
+                        });
+
+                        if (game2StrawberriesCaught >= targetStrawberriesToCatch) {
+                            game2State = "decorate";
+                            missionCounter.style.display = "none"; 
+
+                            game2StrawberriesList.forEach(s => game2Group.remove(s.group));
+                            game2StrawberriesList.length = 0;
+
+                            showDialog(
+                                "The Blue Blueprint",
+                                "Bagus sekali! Semua strawberi segar telah berhasil kamu kumpulkan. Sekarang, **mendekatlah ke meja putih di tengah untuk menaruh strawberi di atas Kue Black Forest-mu!** 🍓🍰",
+                                `<button class="interact-btn" onclick="hideDialog()">Siap! Dekorasi Kue ➔</button>`,
+                                "🔵",
+                                false,
+                                false
+                            );
+                        }
+                    }
+
+                    else if (game2State === "decorate") {
+                        const distToCakeTable = jipiChibi.group.position.distanceTo(new THREE.Vector3(0, 0.08, 0));
+                        if (distToCakeTable < 1.5 && !dialogActive) {
+                            game2State = "cinematic_zoomin"; 
+                            hideDialog();
+
+                            // Atur Jipi berdiri manis menghadap meja
+                            jipiChibi.group.position.set(0.9, 0.08, 0.9);
+                            jipiChibi.group.lookAt(0, 0.08, 0);
+
+                            // Munculkan Aping di dalam kelas untuk merayakan bersama
+                            game2Aping.position.set(-0.9, 0.08, -0.9);
+                            game2Aping.lookAt(0, 0.08, 0);
+                            game2Aping.visible = true;
+
+                            // ALUR SINEMATIK BERURUTAN (ZOOM IN -> HIAS -> ZOOM OUT GATHERING)
+                            setTimeout(() => {
+                                // 1. Stroberi ditaruh ke kue
+                                spawnStrawberryOnCake();
+                                
+                                // 2. Transisi ke Zoom-out, munculkan 23 kawan basecamp magang
+                                game2State = "cinematic_eating";
+                                spawnBasecampFriends();
+
+                                // 3. Munculkan dialog penyelesaian misi setelah visualisasi makan bersama aktif
+                                setTimeout(() => {
+                                    showDialog(
+                                        "Lapis Tugu Surabaya Black Forest 🍰",
+                                        `*Nyam, nyam, nyam...* 🍰<br><br>
+                                        Kue Black Forest kesukaanmu berhasil dihias dengan strawberi merah melimpah!<br><br>
+                                        Jipi, Aping, dan 23 teman magang lainnya berkumpul di sekeliling meja kelas biru basecamp batik, tertawa bahagia, dan memakan kue ulang tahun bersama-sama! Momen hangat ini benar-benar menyenangkan. ❤️`,
+                                        `<button class="interact-btn" onclick="triggerMisi2Victory()">Selesaikan Misi 2 ➔</button>`,
+                                        "🍰",
+                                        false,
+                                        false
+                                    );
+                                }, 2000);
+                            }, 2000);
+                        }
+                    }
+                }
+
+                else if (activeWorld === "game3") {
+                    game3NotesList.forEach(note => {
+                        if (note.active) {
+                            note.group.rotation.y += 0.035;
+                            note.group.position.y = note.pos.y + Math.sin(time * 2 + note.randOffset) * 0.25;
+
+                            // PERBAIKAN: Deteksi tabrakan horizontal 2D (Sumbu X & Z) agar Jipi tetap bisa mengambil nada setinggi apa pun saat melompat atau berjalan
+                            const distToNote2D = Math.sqrt(
+                                Math.pow(jipiChibi.group.position.x - note.group.position.x, 2) + 
+                                Math.pow(jipiChibi.group.position.z - note.group.position.z, 2)
+                            );
+
+                            if (distToNote2D < 0.95) {
+                                note.active = false;
+                                note.group.visible = false;
+                                game3Score++;
+
+                                missionCounter.innerText = `🎵 Nada Terkumpul: ${game3Score} / ${targetNotesToHit}`;
+
+                                try {
+                                    const actx = new (window.AudioContext || window.webkitAudioContext)();
+                                    const osc = actx.createOscillator();
+                                    const g = actx.createGain();
+                                    osc.frequency.setValueAtTime(523.25 + (game3Score * 40), actx.currentTime); 
+                                    g.gain.setValueAtTime(0.08, actx.currentTime);
+                                    g.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.15);
+                                    osc.connect(g);
+                                    g.connect(actx.destination);
+                                    osc.start();
+                                    osc.stop(actx.currentTime + 0.15);
+                                } catch(e){}
+                            }
+                        }
+                    });
+
+                    if (game3Score >= targetNotesToHit && !dialogActive) {
+                        showDialog(
+                            "The Greatest Ensemble",
+                            `♪ Melodi Harmonis Terjalin Sempurna! ♪<br><br>
+                            Seluruh 10 Nada Emas telah bersatu kembali! Aping, kamu, dan teman-teman siap menyanyikan lagu selamat ulang tahun terindah untukmu!`,
+                            `<button class="interact-btn" onclick="triggerMisi3Victory()">Dengarkan Lagu Kejutan! 🎉➔</button>`,
+                            "🟡",
+                            false,
+                            false
+                        );
+                    }
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
